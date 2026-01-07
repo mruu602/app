@@ -65,13 +65,21 @@ header .timer { font-weight:bold; font-size:1em; margin-top:5px; }
     word-break: break-word;
 }
 
-/* 問題文 */
+/* 問題文：番号と本文を横並びで左揃え */
 .question-text {
-    white-space: pre-wrap;
+    display: flex;
+    align-items: flex-start;
     line-height: 1.6;
-    text-align: left;
-    text-indent: 1em; /* 最初の行だけインデント */
     margin-bottom: 15px;
+}
+.question-text .q-number {
+    min-width: 2em;
+    text-align: right;
+    margin-right: 0.5em;
+}
+.question-text .q-body {
+    flex: 1;
+    white-space: pre-wrap;
 }
 
 /* 選択肢 */
@@ -83,28 +91,30 @@ header .timer { font-weight:bold; font-size:1em; margin-top:5px; }
 
 /* 選択肢ラベル */
 .choices label {
-    display:flex;
-    align-items:center;
-    margin:6px 0 6px 1em; /* 左に自然な余白 */
+    display: flex;
+    align-items: center; /* ラジオボタンとテキスト/画像を水平中央 */
+    margin:6px 0 6px 1em;
     font-size:1em;
     padding:6px 8px;
     border-radius:4px;
     cursor:pointer;
     transition: background 0.2s;
     user-select: none;
+    white-space: pre-wrap;
+}
+.choices label input[type="radio"] {
+    margin-right:8px;
+    margin-top:0;
+    flex-shrink:0;
+}
+.choices label .label-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 /* ホバー時 */
 .choices label:hover { background:#f0f0f0; }
-
-/* ラジオボタン */
-.choices label input[type="radio"] {
-    margin-right:8px;
-    margin-top:0;
-    vertical-align: middle;
-    flex-shrink:0;
-}
-
 /* 選択済みラベルハイライト */
 .choices label.selected { background-color:#ddf; }
 
@@ -152,8 +162,17 @@ button:hover { background:#eee; }
         max-width: 95vw;
         width: 95%;
     }
-    .question-text { text-indent: 0.8em; margin-bottom:12px; }
-    .choices label { font-size:0.95em; padding:6px 6px; margin-left:0.8em; }
+    .question-text .q-body { white-space: pre-wrap; }
+    .choices label { 
+        font-size:0.95em; 
+        padding:6px 6px; 
+        margin-left:0.8em; 
+        flex-wrap: wrap;
+    }
+    .choices label .label-content { 
+        align-items: flex-start;
+    }
+    .choices label input[type="radio"] { margin-top:4px; }
     .nav-btn { min-width:25px; height:25px; line-height:25px; font-size:0.8em; }
     button { padding:6px 12px; font-size:0.95em; }
     #progress-text { font-size:0.8em; }
@@ -205,18 +224,15 @@ function loadQuestions(){
     .then(data=>{
         questions = data.questions;
         examMode = data.mode || "exam";
-
         if(questions.length === 0){
             alert("問題が見つかりません。管理者で問題を登録してください。");
             return;
         }
-
         currentIndex = 0;
         createNav();
         renderQuestion();
         updateProgress();
         highlightNav();
-
         if(examMode==="exam" && remainingSeconds != null) startTimer();
     });
 }
@@ -232,7 +248,8 @@ function renderQuestion(){
     div.id = `question-${q.id}`;
     div.innerHTML = `
         <div class="question-text">
-            ${currentIndex+1}. ${renderTextWithImages(q.question_text)}
+            <span class="q-number">${currentIndex+1}.</span>
+            <span class="q-body">${renderTextWithImages(q.question_text)}</span>
         </div>
         <div class="choices" id="choices${q.id}"></div>
         <div id="result${q.id}"></div>
@@ -250,7 +267,7 @@ function renderQuestion(){
         choices.innerHTML += `
         <label>
             <input type="radio" name="q${q.id}" value="${esc}" ${checked} onclick="record(${q.id}, '${esc}')">
-            ${renderTextWithImages(cval)}
+            <span class="label-content">${renderTextWithImages(cval)}</span>
         </label>`;
     });
 
