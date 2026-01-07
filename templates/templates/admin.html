@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>管理者画面</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; color: #333; }
+h1, h2 { color: #333; }
+table { border-collapse: collapse; width: 100%; margin-top: 10px; background: #fff; }
+table, th, td { border: 1px solid #ccc; }
+th, td { padding: 8px; text-align: center; }
+form input[type="text"], form input[type="number"], form input[type="file"], form input[type="date"] { margin-right: 5px; padding: 4px; border: 1px solid #ccc; border-radius: 3px; }
+form button { padding: 4px 10px; border-radius: 3px; border: none; background: #1976d2; color: #fff; cursor: pointer; }
+form button:hover { background: #125a9c; }
+.logout { float: right; text-decoration: none; color: #1976d2; font-weight: bold; }
+.logout:hover { text-decoration: underline; }
+.section { margin-bottom: 30px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.inline-form { display: inline; }
+.inline-form button { margin: 0 2px; }
+a.button-link { display: inline-block; padding: 4px 8px; margin-left: 5px; background: #4caf50; color: #fff; border-radius: 3px; text-decoration: none; }
+a.button-link:hover { background: #388e3c; }
+</style>
+</head>
+<body>
+
+<h1>
+    管理者画面
+    <a href="/admin/logout" class="logout">ログアウト</a>
+</h1>
+
+<div class="section">
+<h2>試験登録</h2>
+<form method="POST" action="/admin/upload" enctype="multipart/form-data">
+    試験名: <input type="text" name="exam_name" required>
+    時間(分): <input type="number" name="duration" value="30" required>
+    問題数: <input type="number" name="total_questions" value="5" required>
+    合格点(%): <input type="number" name="pass_rate" value="60" min="0" max="100" required>
+    試験日: <input type="date" name="exam_date" required>
+    CSV: <input type="file" name="csv_file" accept=".csv" required>
+    <button type="submit">登録</button>
+</form>
+</div>
+
+<div class="section">
+<h2>登録試験一覧</h2>
+<table>
+<tr>
+    <th>試験名</th>
+    <th>時間(分)</th>
+    <th>問題数</th>
+    <th>合格点</th>
+    <th>試験日</th>
+    <th>操作</th>
+</tr>
+{% for exam in exams %}
+<tr>
+    <td>{{ exam.name }}</td>
+    <td>{{ exam.duration }}</td>
+    <td>{{ exam.total_questions }}</td>
+    <td>{{ (exam.pass_rate * 100)|round(0) }}%</td>
+    <td>{{ exam.exam_date }}</td>
+    <td>
+        <form method="POST" action="/admin/delete_exam/{{ exam.id }}" class="inline-form">
+            <button type="submit">削除</button>
+        </form>
+        <a href="/admin/export/{{ exam.id }}" class="button-link">CSV出力</a>
+    </td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<div class="section">
+<h2>受験者履歴</h2>
+<table>
+<tr>
+    <th>試験名</th>
+    <th>受験者</th>
+    <th>試験日</th>
+    <th>得点</th>
+    <th>合否</th>
+    <th>操作</th>
+</tr>
+{% for h in exam_history %}
+<tr>
+    <td>{{ h.exam_name }}</td>
+    <td>{{ h.student_name }}</td>
+    <td>{{ h.exam_date }}</td>
+    <td>{{ h.score }}</td>
+    <td>{{ h.status }}</td>
+    <td>
+        <!-- ★ 修正：POSTフォームで hidden で送信 -->
+        <form method="POST" action="/admin/delete_answer" class="inline-form">
+            <input type="hidden" name="exam_id" value="{{ h.exam_id }}">
+            <input type="hidden" name="student_name" value="{{ h.student_name }}">
+            <button type="submit">削除</button>
+        </form>
+    </td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+</body>
+</html>

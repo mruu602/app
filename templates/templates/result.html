@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>{{ student_name }} さんの結果</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { font-family: Arial, sans-serif; margin: 10px; padding: 0; background-color: #f9f9f9; color: #333; }
+h1 { font-size: 1.6em; text-align: center; margin-bottom: 10px; }
+#score { font-weight: bold; text-align: center; margin-bottom: 15px; font-size: 1.2em; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background-color: #fff; }
+th, td { padding: 10px; border: 1px solid #ccc; text-align: left; word-wrap: break-word; white-space: pre-wrap; }
+th { background-color: #e0e0e0; }
+.correct { background-color: #c8e6c9; }
+.incorrect { background-color: #ffcdd2; }
+.unanswered { background-color: #eeeeee; }
+button { padding: 10px 20px; margin: 10px auto; display: block; font-size: 1em; border-radius: 5px; cursor: pointer; background-color: #1976d2; color: white; border: none; }
+button:hover { background-color: #125a9c; }
+@media (max-width: 600px){
+    th, td { font-size: 0.9em; padding: 8px; }
+    button { font-size: 0.95em; padding: 8px 15px; }
+    #score { font-size: 1em; }
+}
+</style>
+</head>
+<body>
+
+<h1>{{ student_name }} さんの結果</h1>
+<div id="score">得点: {{ total }}/{{ max_score }}</div>
+
+<table>
+<tr>
+    <th>問題</th>
+    <th>あなたの回答</th>
+    <th>正解</th>
+    <th>正誤</th>
+</tr>
+
+{% for q in question_results %}
+<tr class="{% if q.selected_answer is none %}unanswered{% elif q.is_correct %}correct{% else %}incorrect{% endif %}">
+    <td>{{ q.question_text }}</td>
+    <td>{{ q.selected_answer if q.selected_answer else '未回答' }}</td>
+    <td>{{ q.correct_answer }}</td>
+    <td>{% if q.selected_answer is none %}未回答{% elif q.is_correct %}〇{% else %}×{% endif %}</td>
+</tr>
+{% endfor %}
+</table>
+
+<button onclick="window.location.href='/'">トップに戻る</button>
+</body>
+</html>
