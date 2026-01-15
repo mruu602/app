@@ -92,7 +92,7 @@ header .timer { font-weight:bold; font-size:1em; margin-top:5px; }
 /* 選択肢ラベル */
 .choices label {
     display: flex;
-    align-items: center; /* ラジオボタンとテキスト/画像を水平中央 */
+    align-items: flex-start; /* ラジオボタンとテキスト/画像を左上揃え */
     margin:6px 0 6px 1em;
     font-size:1em;
     padding:6px 8px;
@@ -110,7 +110,8 @@ header .timer { font-weight:bold; font-size:1em; margin-top:5px; }
 .choices label .label-content {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    align-items: flex-start;   /* ← 左揃え */
+    justify-content: flex-start; /* ← 上寄せ */
 }
 
 /* ホバー時 */
@@ -170,7 +171,8 @@ button:hover { background:#eee; }
         flex-wrap: wrap;
     }
     .choices label .label-content { 
-        align-items: flex-start;
+        align-items: flex-start;  /* スマホでも左揃え */
+        justify-content: flex-start;
     }
     .choices label input[type="radio"] { margin-top:4px; }
     .nav-btn { min-width:25px; height:25px; line-height:25px; font-size:0.8em; }
@@ -212,8 +214,12 @@ function escapeQuotes(str){ return str ? str.replace(/'/g,"\\'").replace(/"/g,'\
 function renderTextWithImages(text){
     if(!text) return "";
     const cleaned = text.replace(/^[ \t　]+/gm, "");
-    return cleaned.replace(/\[img:(https?:\/\/[^\]\s]+)\]/g,'<div class="question-image"><img src="$1"></div>');
+    return cleaned.replace(
+        /\[img:\s*([^\]\s]+)\s*\]/g,
+        '<div class="question-image"><img src="$1"></div>'
+    );
 }
+
 function saveAnswers(){ localStorage.setItem(storageKey, JSON.stringify(answers)); }
 function loadSavedAnswers(){ const saved = localStorage.getItem(storageKey); if(saved) answers = JSON.parse(saved); }
 
