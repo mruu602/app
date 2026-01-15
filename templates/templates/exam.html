@@ -92,7 +92,7 @@ header .timer { font-weight:bold; font-size:1em; margin-top:5px; }
 /* 選択肢ラベル */
 .choices label {
     display: flex;
-    align-items: center; /* ラジオボタンとテキスト/画像を水平中央 */
+    align-items: flex-start; /* ラジオボタンとテキスト/画像を左上揃え */
     margin:6px 0 6px 1em;
     font-size:1em;
     padding:6px 8px;
@@ -110,7 +110,8 @@ header .timer { font-weight:bold; font-size:1em; margin-top:5px; }
 .choices label .label-content {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    align-items: flex-start;   /* ← 左揃え */
+    justify-content: flex-start; /* ← 上寄せ */
 }
 
 /* ホバー時 */
@@ -170,7 +171,8 @@ button:hover { background:#eee; }
         flex-wrap: wrap;
     }
     .choices label .label-content { 
-        align-items: flex-start;
+        align-items: flex-start;  /* スマホでも左揃え */
+        justify-content: flex-start;
     }
     .choices label input[type="radio"] { margin-top:4px; }
     .nav-btn { min-width:25px; height:25px; line-height:25px; font-size:0.8em; }
@@ -182,7 +184,7 @@ button:hover { background:#eee; }
 <body>
 
 <header>
-    <h2>試験 / 学習モード: <span id="mode">{{ mode }}</span></h2>
+    <h2>試験 / 学習モード: <span id="mode">{{ mode | safe }}</span></h2>
     <div class="timer">残り時間: <span id="timer">--:--</span></div>
     <div id="progress-container">
         <div id="progress-bar"></div>
@@ -203,7 +205,7 @@ let answers = {};
 let submitted = false;
 let remainingSeconds = {{ remaining_seconds if remaining_seconds is not none else 'null' }};
 let currentIndex = 0;
-let examMode = "{{ mode }}";
+let examMode = "{{ mode | safe }}";
 const storageKey = `exam_{{ exam_id }}_answers`;
 
 document.addEventListener("DOMContentLoaded", loadQuestions);
@@ -212,14 +214,18 @@ function escapeQuotes(str){ return str ? str.replace(/'/g,"\\'").replace(/"/g,'\
 function renderTextWithImages(text){
     if(!text) return "";
     const cleaned = text.replace(/^[ \t　]+/gm, "");
-    return cleaned.replace(/\[img:(https?:\/\/[^\]\s]+)\]/g,'<div class="question-image"><img src="$1"></div>');
+    return cleaned.replace(
+        /\[img:\s*([^\]\s]+)\s*\]/g,
+        '<div class="question-image"><img src="$1"></div>'
+    );
 }
+
 function saveAnswers(){ localStorage.setItem(storageKey, JSON.stringify(answers)); }
 function loadSavedAnswers(){ const saved = localStorage.getItem(storageKey); if(saved) answers = JSON.parse(saved); }
 
 function loadQuestions(){
     loadSavedAnswers();
-    fetch(`/load_questions?exam_id={{ exam_id }}&student_name={{ student_name }}`)
+    fetch(`/load_questions?exam_id={{ exam_id }}&student_name={{ student_name | safe }}`)
     .then(res=>res.json())
     .then(data=>{
         questions = data.questions;
@@ -358,13 +364,13 @@ function submitExam(auto=false){
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
-            student_name:"{{ student_name }}",
+            student_name:"{{ student_name | safe }}",
             exam_id:{{ exam_id }},
             answers:answers
         })
     }).then(()=>{
         localStorage.removeItem(storageKey);
-        location.href=`/result?student_name={{ student_name }}&exam_id={{ exam_id }}&mode=${examMode}`;
+        location.href=`/result?student_name={{ student_name | safe }}&exam_id={{ exam_id }}&mode=${examMode}`;
     });
 }
 
